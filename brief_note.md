@@ -1,0 +1,2 @@
+This is my first time building a react feature so I just follow the existing project patterns while ensuring clean integration across full stack.
+In trpc test I simulated the simplest ctx context I can follow to hit validation tests.

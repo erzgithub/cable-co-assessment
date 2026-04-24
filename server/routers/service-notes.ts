@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 import { eq, desc } from "drizzle-orm";
-import { adminProcedure, publicProcedure, router } from "../_core/trpc";
+import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { serviceRequestNotes } from "../../drizzle/schema";
 
@@ -22,12 +22,13 @@ export const serviceNotesRouter = router({
         content: input.content,
       });
 
-      return { success: true };
+      return { success: true, message: `Created Note Successfuly.` };
 
     }),
     list: adminProcedure
       .input(
         z.object({
+          limit: z.number().min(1).max(100).optional().default(50),
           serviceRequestId: z.number(),
         })
       )
@@ -35,11 +36,13 @@ export const serviceNotesRouter = router({
         const db = await getDb();
         if (!db) throw new Error("Database not available!");
 
+        const limit = input?.limit ?? 50;
         const notes = await db
           .select()
           .from(serviceRequestNotes)
           .where(eq(serviceRequestNotes.serviceRequestId, input.serviceRequestId))
-          .orderBy(desc(serviceRequestNotes.createdAt));
+          .orderBy(desc(serviceRequestNotes.createdAt))
+          .limit(limit);
 
         return { notes };
       }),
@@ -57,6 +60,6 @@ export const serviceNotesRouter = router({
             .delete(serviceRequestNotes)
             .where(eq(serviceRequestNotes.id, input.noteId));
 
-          return { success: true };
+          return { success: true, message: `Note Deleted Successfuly.` };
         }),
 });
