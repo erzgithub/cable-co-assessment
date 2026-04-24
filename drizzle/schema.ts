@@ -54,3 +54,13 @@ export type InsertServiceRequest = typeof serviceRequests.$inferInsert;
 // YOUR TASK: Add the service_request_notes table below this line.
 // Follow the pattern above for column definitions and type exports.
 // ─────────────────────────────────────────────────────────────
+export const serviceRequestNotes = mysqlTable("service_request_notes", {
+  id: int("id").autoincrement().primaryKey(),
+  serviceRequestId: int("serviceRequestId").notNull(),
+  authorId: int("authorId").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull()
+});
+
+export type ServiceRequestNote = typeof serviceRequestNotes.$inferSelect;
+export type InsertServiceRequestNote = typeof serviceRequestNotes.$inferInsert;
