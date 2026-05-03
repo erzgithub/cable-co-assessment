@@ -4,11 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
+type Note = {
+  id: number;
+  content: string;
+  authorName: string | null;
+  createdAt: Date;
+};
+
 type Props = {
   serviceRequestId: number;
 };
 
-export function serviceNotesPanel({ serviceRequestId }: Props){
+export function ServiceNotesPanel({ serviceRequestId }: Props){
   const utils = trpc.useUtils();
   const [content, setContent] = useState("");
 
@@ -23,16 +30,27 @@ export function serviceNotesPanel({ serviceRequestId }: Props){
 
   const deleteNote = trpc.serviceNotes.delete.useMutation({
     onSuccess: () => {
-      setContent("");
       utils.serviceNotes.list.invalidate({ serviceRequestId });
     },
   });
+
+  if (error) {
+    return (
+      <Card className="mt-4 border-destructive">
+        <CardContent className="pt-6">
+          <p className="text-destructive text-sm">
+            Failed to load notes: {error.message}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Loading notes...</p>;
   }
 
-  const notes = data?.notes ?? [];
+  const notes: Note[] = data?.notes ?? [];
 
   return (
     <Card className="mt-4">
@@ -65,12 +83,17 @@ export function serviceNotesPanel({ serviceRequestId }: Props){
           </p>
         ) : (
           <div className="space-y-2">
-            {notes.map((note: any) => (
+            {notes.map((note: Note) => (
               <div
                 key={note.id}
                 className="border rounded p-2 text-sm flex justify-between items-start"
               >
                 <div>
+                  {note.authorName && (
+                    <p className="text-xs font-medium">
+                      {note.authorName}
+                    </p>
+                  )}
                   <p>{note.content}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(note.createdAt).toLocaleString()}

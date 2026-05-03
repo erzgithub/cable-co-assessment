@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 import { eq, desc } from "drizzle-orm";
 import { adminProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { serviceRequestNotes } from "../../drizzle/schema";
+import { serviceRequestNotes, users } from "../../drizzle/schema";
 
 export const serviceNotesRouter = router({
   add: adminProcedure
@@ -38,8 +38,14 @@ export const serviceNotesRouter = router({
 
         const limit = input?.limit ?? 50;
         const notes = await db
-          .select()
+          .select({
+            id: serviceRequestNotes.id,
+            content: serviceRequestNotes.content,
+            authorName: users.name,
+            createdAt: serviceRequestNotes.createdAt,
+          })
           .from(serviceRequestNotes)
+          .leftJoin(users, eq(serviceRequestNotes.authorId, users.id))
           .where(eq(serviceRequestNotes.serviceRequestId, input.serviceRequestId))
           .orderBy(desc(serviceRequestNotes.createdAt))
           .limit(limit);
